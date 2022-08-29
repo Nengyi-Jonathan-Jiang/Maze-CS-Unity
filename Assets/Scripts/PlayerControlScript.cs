@@ -7,10 +7,13 @@ public class PlayerControlScript : MonoBehaviour
     Rigidbody2D rb;
 
     public float movementSpeed;
+
+    public HashSet<string> keys;
     
     // Start is called before the first frame update
     void Start() {
         rb = GetComponent<Rigidbody2D>();
+        keys = new HashSet<string>();
     }
 
     // Update is called once per frame
@@ -22,5 +25,19 @@ public class PlayerControlScript : MonoBehaviour
         if (Input.GetKey(KeyCode.D)) movement += new Vector2(1, 0);
         
         rb.AddForce(movement * Time.deltaTime * 1000 * movementSpeed);
+    }
+
+    private void OnCollisionEnter2D(Collision2D collision) {
+        GameObject o = collision.gameObject;
+        string color = o.GetComponent<SpriteRenderer>().color.ToString();
+        if (o.name.Equals("Key")) {
+            keys.Add(color);
+            Destroy(o);
+        }
+        else if (o.name.Equals("Door")) {
+            if (keys.Contains(color)) {
+                Destroy(o);
+            }
+        }
     }
 }

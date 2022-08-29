@@ -19,8 +19,9 @@ public class MazeBuilder : MonoBehaviour {
     public void Build() {
         var visited = new bool[SIZE, SIZE];
         var tree = new Vector2Int[SIZE, SIZE];
-        Stack<Vector2Int> stk = stk = new Stack<Vector2Int>();
-        stk.Push(new Vector2Int(Random.Range(0, SIZE), Random.Range(0, SIZE)));
+        Stack<Vector2Int> stk = new Stack<Vector2Int>();
+        var start = new Vector2Int(Random.Range(0, SIZE), Random.Range(0, SIZE));
+        stk.Push(start);
         while (stk.Count > 0) {
             var p = stk.Peek();
             int row = p.x, col = p.y;
@@ -36,6 +37,8 @@ public class MazeBuilder : MonoBehaviour {
             stk.Push(newPos);
             tree[newPos.x, newPos.y] = p;
         }
+
+        GameObject.Find("Player").transform.position = new Vector2(start.x, start.y) * 8;
 
         Debug.Log(tree);
     }
@@ -66,6 +69,7 @@ public class MazeBuilder : MonoBehaviour {
         GameObject res = Instantiate(MazeNodePrefab);
         res.transform.position = new Vector2(x * 8 - 4, y * 8 - 4);
         res.transform.parent = gameObject.transform;
+        res.name = "Node";
     }
 
     private void AddMazeWallAt(int x, int y, bool rotation) {
@@ -73,5 +77,6 @@ public class MazeBuilder : MonoBehaviour {
         res.transform.position = new Vector2(x * 8 + (rotation ? 4 : 0), y * 8 + (rotation ? 0 : 4));
         res.transform.parent = gameObject.transform;
         if (rotation) res.transform.rotation = Quaternion.Euler(0, 0, 90);
+        res.name = "Wall";
     }
 }
