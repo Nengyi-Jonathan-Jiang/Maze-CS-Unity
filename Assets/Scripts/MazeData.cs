@@ -55,7 +55,22 @@ public class MazeData {
                 throw new Exception("Invalid Neighbor to Remove");
         }
     }
-    
+
+    public Vector2Int GetNeighbor(Neighbor neighbor, int row, int col) {
+        switch (neighbor) {
+            case Neighbor.Top:
+                return new Vector2Int(row - 1, col);
+            case Neighbor.Bottom:
+                return new Vector2Int(row + 1, col);
+            case Neighbor.Left:
+                return new Vector2Int(row, col - 1);
+            case Neighbor.Right:
+                return new Vector2Int(row, col + 1);
+            default:
+                throw new Exception("Invalid Neighbor");
+        }
+    }
+
 
     public MazeDataCell this[int row, int col] => grid[row, col];
     

@@ -1,6 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Xml;
+using System.Linq;
 using UnityEngine;
 
 public class MazeBuilder : MonoBehaviour {
@@ -21,8 +21,9 @@ public class MazeBuilder : MonoBehaviour {
 
     public void Build() {
         var visited = new bool[SIZE, SIZE];
-        var tree = new Vector2Int[SIZE, SIZE];
-        
+        var parent = new Vector2Int[SIZE, SIZE];
+        var children = new List<Vector2Int>[SIZE, SIZE];
+
         var stk = new Stack<Vector2Int>();
         var dStk = new Stack<int>();
         
@@ -57,7 +58,9 @@ public class MazeBuilder : MonoBehaviour {
             
             stk.Push(newPos);
             dStk.Push(depth + 1);
-            tree[newPos.x, newPos.y] = p;
+
+            children[p.x, p.y].Add(newPos);
+            parent[newPos.x, newPos.y] = p;
         }
 
         GameObject.Find("Player").transform.position = new Vector2(start.x, start.y) * 8;
@@ -65,18 +68,46 @@ public class MazeBuilder : MonoBehaviour {
         
         visited[start.x, start.y] = visited[end.x, end.y] = false;
 
-        //var solutionPath = new HashSet<Vector2Int>();
-        var solutionPath = new List<Vector2Int>(new Vector2Int[]{end});
+        var solutionPath = new HashSet<Vector2Int>(new Vector2Int[]{end});
         while (end != start) {
-            end = tree[end.x, end.y];
+            end = parent[end.x, end.y];
             solutionPath.Add(end);
         }
 
 
 
         Color[] COLORS = {Color.yellow, Color.red, Color.green, Color.blue};
-        
+
+        var hasDoor = new bool[SIZE, SIZE];
+        var used = new bool[SIZE, SIZE];
+
         for (var i = 0; i < 4; i++) {   //We will place 3 keys
+            var doorPos = new List<Vector2Int>(solutionPath)[Random.Range(0, solutionPath.Count)];
+            AddMazeDoorAt(doorPos.x, doorPos.y, COLORS[i]);
+            used[doorPos.x, doorPos.y] = hasDoor[doorPos.x, doorPos.y] = true;
+
+            var doorPath = GetRoute(start, doorPos, parent);
+            solutionPath.UnionWith(doorPath);
+
+            var reachable = new HashSet<Vector2Int>();
+            {
+                var stk2 = new Stack<Vector2Int>(doorPath);
+                while (stk2.Count > 0) {
+                    Vector2Int pos = stk2.Pop();
+                    var neighbors = mazeData.GetNeighbors(pos.x, pos.y, i => !hasDoor[i.x, i.y] && !reachable.Contains(i));
+                    foreach (var n in neighbors) {
+                        reachable.Add(mazeData.GetNeighbor(n, pos.x, pos.y));
+                    }
+                }
+            }
+
+            var possibleKeyPositions = new List<Vector2Int>(from item in reachable
+                where !used[item.x, item.y]
+                select item);
+
+
+            /*
+            
             var random = start;
             var tries = 0;
             while (!visited[random.x, random.y] || solutionPath.Contains(random)) {
@@ -101,9 +132,23 @@ public class MazeBuilder : MonoBehaviour {
             //Place door here
             AddMazeDoorAt(random.x, random.y, COLORS[i]);
             visited[random.x, random.y] = false;
+
+            */
         }
 
-        done:;
+        // done:;
+    }
+
+    private static HashSet<Vector2Int> GetRoute(Vector2Int start, Vector2Int target, Vector2Int[,] parent) {
+        var res = new HashSet<Vector2Int>();
+
+        while (true) {
+            target = parent[target.x, target.y];
+            if (target == start) break;
+            res.Add(target);
+        }
+
+        return res;
     }
 
     private void GenerateGameObjects() {
