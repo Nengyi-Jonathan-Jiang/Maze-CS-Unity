@@ -10,6 +10,8 @@ namespace Assets.Scripts {
         public float MovementSpeed;
 
         public HashSet<string> Keys;
+
+        public GameObject MarkerPrefab;
         
         // Start is called before the first frame update
         private void Start() {
@@ -33,8 +35,18 @@ namespace Assets.Scripts {
             var color = o.GetComponent<SpriteRenderer>().color.ToString();
             switch (o.name) {
                 case "Key":
+                    //Destroy(o);
+                    o.transform.parent = Camera.main.transform;
+                    o.transform.position = Camera.main.transform.position + new Vector3(-54 + 4 * Keys.Count, 29, 5);
+                    o.transform.localScale = Vector2.one * 3f;
+
+                    var marker = Instantiate(MarkerPrefab);
+                    marker.transform.parent = Camera.main.transform;
+                    marker.transform.position = Camera.main.transform.position + new Vector3(-54 + 4 * Keys.Count, 29, 6);
+                    marker.transform.localScale = Vector2.one * 4f;
+                    marker.GetComponent<SpriteRenderer>().color = new Color(1, 1, 1, .1f);
+
                     Keys.Add(color);
-                    Destroy(o);
                     break;
                 case "Door":
                     if (Keys.Contains(color)) {
