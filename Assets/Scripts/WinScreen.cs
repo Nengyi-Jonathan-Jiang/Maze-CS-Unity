@@ -6,7 +6,7 @@ namespace Assets.Scripts {
         // Update is called once per frame
         private void Update()
         {
-            if (Input.GetKey(KeyCode.Space)) {
+            if (Input.GetKey(KeyCode.Space) || Input.touchCount > 0) {
                 SceneManager.LoadScene("MazeScene");
             }
         }
