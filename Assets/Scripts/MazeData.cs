@@ -24,7 +24,7 @@ namespace Assets.Scripts {
                     _grid[row, col].Reset();
         }
 
-        public enum Neighbor { Top, Bottom, Left, Right };
+        public enum Neighbor { Top, Left, Bottom, Right };
         public List<Neighbor> GetNeighbors(int row, int col, Func<Vector2Int, bool> valid) {
             return GetNeighbors(row, col, (s, d) => valid(s));
         }

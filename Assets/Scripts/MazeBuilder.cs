@@ -17,13 +17,20 @@ namespace Assets.Scripts {
         public GameObject MazeKeyPrefab;
         public GameObject MazeDoorPrefab;
 
+        public PlayerControlScript player;
+
+        private MazeData _mazeData;
+        private GameObject[,] _obstacles;
+
         // Start is called before the first frame update
         private void Start() {
             Build();
         }
 
         private void Build() {
-            var mazeData = new MazeData(Size);
+            _mazeData = new MazeData(Size);
+            _obstacles = new GameObject[Size, Size];
+            
             var visited = new bool[Size, Size];
             var parent = new Vector2Int[Size, Size];
             var children = new List<Vector2Int>[Size, Size];
@@ -50,13 +57,13 @@ namespace Assets.Scripts {
                 int row = p.x, col = p.y;
                 visited[row, col] = true;
                 //Get neighbors
-                var neighbors = mazeData.GetNeighbors(row, col, pt => !visited[pt.x, pt.y]);
+                var neighbors = _mazeData.GetNeighbors(row, col, pt => !visited[pt.x, pt.y]);
                 if (neighbors.Count < 2) {
                     stk.Pop();
                     dStk.Pop();
                 }
                 if (neighbors.Count == 0) continue;
-                var newPos = mazeData.RemoveNeighborWall(
+                var newPos = _mazeData.RemoveNeighborWall(
                     neighbors[Random.Range(0, neighbors.Count)],
                     row, col
                 );
@@ -68,8 +75,9 @@ namespace Assets.Scripts {
                 parent[newPos.x, newPos.y] = p;
             }
 
-            GameObject.Find("Player").transform.position = new Vector2(start.x, start.y) * 8;
+            player.Pos = start;
             GameObject.Find("Finish").transform.position = new Vector2(end.x, end.y) * 8;
+            _obstacles[end.x, end.y] = GameObject.Find("Finish");
 
             for (var i = 0; i <= Size; i++)
                 for (var j = 0; j <= Size; j++)
@@ -82,9 +90,9 @@ namespace Assets.Scripts {
 
             for (var i = 0; i < Size; i++) {
                 for (var j = 0; j < Size; j++) {
-                    if (mazeData[i, j].HasBottomWall())
+                    if (_mazeData[i, j].HasBottomWall())
                         AddMazeWallAt(i, j, true);
-                    if (mazeData[i, j].HasRightWall())
+                    if (_mazeData[i, j].HasRightWall())
                         AddMazeWallAt(i, j, false);
                 }
             }
@@ -123,12 +131,12 @@ namespace Assets.Scripts {
                 var stk2 = new Stack<Vector2Int>(doorPath);
                 while (stk2.Count > 0) {
                     var pos = stk2.Pop();
-                    var neighbors = mazeData.GetNeighbors(pos.x, pos.y, p =>
+                    var neighbors = _mazeData.GetNeighbors(pos.x, pos.y, p =>
                         !hasDoor[p.x, p.y] && 
                         !reachable.Contains(p) 
                         && children[pos.x, pos.y].Contains(p)
                     );
-                    foreach (var n in neighbors.Select(d => mazeData.GetNeighbor(d, pos.x, pos.y))) {
+                    foreach (var n in neighbors.Select(d => _mazeData.GetNeighbor(d, pos.x, pos.y))) {
                         reachable.Add(n);
                         stk2.Push(n);
                     }
@@ -160,6 +168,7 @@ namespace Assets.Scripts {
                 AddMazeDoorAt(doorPos.x, doorPos.y, KeyColors[color]);
                 AddMazeKeyAt(keyPos.x, keyPos.y, KeyColors[color]);
                 used[keyPos.x, keyPos.y] = true;
+
                 color++;
             }
         }
@@ -203,6 +212,8 @@ namespace Assets.Scripts {
             res.transform.parent = gameObject.transform;
             res.name = "Key";
             res.GetComponent<SpriteRenderer>().color = color;
+            
+            _obstacles[x, y] = res;
         }
 
         private void AddMazeDoorAt(int x, int y, Color color) {
@@ -211,6 +222,30 @@ namespace Assets.Scripts {
             res.transform.parent = gameObject.transform;
             res.name = "Door";
             res.GetComponent<SpriteRenderer>().color = color;
+
+            _obstacles[x, y] = res;
+        }
+
+        public bool CanMove(int x, int y, MazeData.Neighbor neighbor) {
+            //if (pos.x < 1 || pos.y < 1 || pos.x >= Size - 1 || pos.y >= Size - 1) {
+                //return false;
+            //}
+            return neighbor switch
+            {
+                MazeData.Neighbor.Top => !_mazeData[x,y].HasTopWall(),
+                MazeData.Neighbor.Bottom => !_mazeData[x, y].HasBottomWall(),
+                MazeData.Neighbor.Left => !_mazeData[x, y].HasLeftWall(),
+                MazeData.Neighbor.Right => !_mazeData[x, y].HasRightWall(),
+                _ => throw new Exception("Invalid Neighbor"),
+            };
+        }
+
+        public GameObject GetObstacle(int x, int y) {
+            return _obstacles[x, y];
+        }
+
+        public void RemoveObstacle(int x, int y) {
+            _obstacles[x, y] = null;
         }
     }
 
