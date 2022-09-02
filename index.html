@@ -5,8 +5,8 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>Unity WebGL Player | Maze</title>
   </head>
-  <body style="text-align: center; padding: 0; border: 0; margin: 0;">
-    <canvas id="unity-canvas" width=1200 height=675 style="width: 1200px; height: 675px; background: #231F20"></canvas>
+  <body style="padding:0;border:0;margin:0;width:100vw;overflow:hidden;height:100vh;background:black;display:flex;justify-items:center;align-items:center">
+    <canvas id="unity-canvas" width="1200" height="675" style="cursor:default;--d:min(100vw / 16, 100vh / 9);width:calc(var(--d) * 16);height: calc(var(--d) * 9);margin:auto"></canvas>
     <script src="Build/WebGL.loader.js"></script>
     <script>
       if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
