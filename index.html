@@ -28,6 +28,8 @@
         // matchWebGLToCanvasSize: false, // Uncomment this to separately control WebGL canvas render size and DOM element size.
         // devicePixelRatio: 1, // Uncomment this to override low DPI rendering on high DPI displays.
       });
+      
+      document.getElementsByTagName('canvas')[0].ondblclick = funtion(e){e.target.requestFullscreen()}
     </script>
   </body>
 </html>
