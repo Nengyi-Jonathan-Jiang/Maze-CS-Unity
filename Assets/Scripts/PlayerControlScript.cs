@@ -22,14 +22,14 @@ namespace Assets.Scripts {
             }
         }
 
-        public HashSet<string> Keys;
+        public Dictionary<string, GameObject> Keys;
 
         public GameObject MarkerPrefab;
         public MazeBuilder maze;
 
         // Start is called before the first frame update
         private void Start() {
-            Keys = new HashSet<string>();
+            Keys = new Dictionary<string, GameObject>();
         }
 
         // Update is called once per frame
@@ -124,23 +124,27 @@ namespace Assets.Scripts {
                     case "Key":
                         onFinishAnimate = () => {
                             obstacle.transform.parent = Camera.main.transform;
-                            obstacle.transform.position = Camera.main.transform.position + new Vector3(-58 + 4 * Keys.Count, 29, 5);
-                            obstacle.transform.localScale = Vector2.one * 3f;
+                            obstacle.transform.localScale = Vector3.one * 3;
+                            Keys.Add(obstacle.GetComponent<SpriteRenderer>().color.ToString(), obstacle);
+
+                            RePositionKeys();
 
                             var marker = Instantiate(MarkerPrefab);
-                            marker.transform.parent = Camera.main.transform;
-                            marker.transform.position = Camera.main.transform.position + new Vector3(-58 + 4 * Keys.Count, 29, 6);
-                            marker.transform.localScale = Vector2.one * 4f;
+                            marker.transform.parent = obstacle.transform;
+                            marker.transform.localPosition = Vector2.zero;
                             marker.GetComponent<SpriteRenderer>().color = new Color(1, 1, 1, .1f);
                         };
-                        Keys.Add(obstacle.GetComponent<SpriteRenderer>().color.ToString());
 
                         maze.RemoveObstacle(x, y);
                         break;
                     case "Door":
-                        if (Keys.Contains(obstacle.GetComponent<SpriteRenderer>().color.ToString())) {
+                        string color = obstacle.GetComponent<SpriteRenderer>().color.ToString();
+                        if (Keys.ContainsKey(color)) {
                             onFinishAnimate = () => {
                                 Destroy(obstacle);
+                                Destroy(Keys[color]);
+                                Keys.Remove(color);
+                                RePositionKeys();
                             };
                             maze.RemoveObstacle(x, y);
                         }
@@ -157,6 +161,16 @@ namespace Assets.Scripts {
                 }
 
                 return;
+            }
+        }
+
+        private void RePositionKeys() {
+            int i = 0;
+            foreach (string s in Keys.Keys) {
+                GameObject key = Keys[s];
+
+                key.transform.localPosition = new Vector3(-58 + 4 * (++i), 29, 5);
+
             }
         }
     }
