@@ -12,7 +12,7 @@ namespace Assets.Scripts {
         SwipeDetector swipeDetector = new SwipeDetector();
         
         Action onFinishAnimate = null;
-        
+
         public Vector2Int Pos {
             set {
                 x = value.x;
